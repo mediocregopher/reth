@@ -1,0 +1,57 @@
+[package]
+name = "mpt-diff"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+description = "Generate diff files for MPT state transitions"
+default-run = "mpt-diff"
+
+[lints]
+workspace = true
+
+[dependencies]
+# reth
+reth-cli.workspace = true
+reth-cli-runner.workspace = true
+reth-cli-util.workspace = true
+reth-ethereum = { workspace = true, features = ["node"] }
+reth-ethereum-cli.workspace = true
+reth-engine-tree.workspace = true
+reth-node-core.workspace = true
+reth-provider.workspace = true
+reth-tracing.workspace = true
+
+# serde
+serde_json.workspace = true
+
+# misc
+clap = { workspace = true, features = ["derive", "env"] }
+eyre.workspace = true
+tracing.workspace = true
+
+[features]
+default = ["jemalloc"]
+
+asm-keccak = [
+    "reth-node-core/asm-keccak",
+]
+
+jemalloc = [
+    "reth-cli-util/jemalloc",
+    "reth-node-core/jemalloc",
+]
+jemalloc-prof = ["reth-cli-util/jemalloc-prof"]
+tracy-allocator = ["reth-cli-util/tracy-allocator"]
+
+min-error-logs = ["tracing/release_max_level_error"]
+min-warn-logs = ["tracing/release_max_level_warn"]
+min-info-logs = ["tracing/release_max_level_info"]
+min-debug-logs = ["tracing/release_max_level_debug"]
+min-trace-logs = ["tracing/release_max_level_trace"]
+
+[[bin]]
+name = "mpt-diff"
+path = "src/main.rs"

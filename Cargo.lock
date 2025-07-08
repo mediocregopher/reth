@@ -900,8 +900,7 @@ dependencies = [
 [[package]]
 name = "alloy-trie"
 version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bada1fc392a33665de0dc50d401a3701b62583c655e3522a323490a5da016962"
+source = "git+https://github.com/mediocregopher/alloy-rs-trie.git?branch=mediocregopher%2Fserde#84255584bc5d7568ba6dd7298260e994de9b3475"
 dependencies = [
  "alloy-primitives",
  "alloy-rlp",
@@ -5718,6 +5717,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fafa6961cabd9c63bcd77a45d7e3b7f3b552b70417831fb0f56db717e72407e"
 
 [[package]]
+name = "mpt-diff"
+version = "1.5.1"
+dependencies = [
+ "clap",
+ "eyre",
+ "reth-cli",
+ "reth-cli-runner",
+ "reth-cli-util",
+ "reth-engine-tree",
+ "reth-ethereum",
+ "reth-ethereum-cli",
+ "reth-node-core",
+ "reth-provider",
+ "reth-tracing",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "multiaddr"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5935,8 +5953,7 @@ dependencies = [
 [[package]]
 name = "nybbles"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "675b3a54e5b12af997abc8b6638b0aee51a28caedab70d4967e0d5db3a3f1d06"
+source = "git+https://github.com/mediocregopher/nybbles.git?branch=mediocregopher%2Fserde#cd2170b4e90e4d7fd9252b0e2c071a63cf0c335d"
 dependencies = [
  "alloy-rlp",
  "arbitrary",
@@ -7986,6 +8003,7 @@ dependencies = [
  "reth-testing-utils",
  "reth-tracing",
  "reth-trie",
+ "reth-trie-common",
  "reth-trie-db",
  "reth-trie-parallel",
  "reth-trie-sparse",
@@ -7994,6 +8012,7 @@ dependencies = [
  "revm-primitives",
  "revm-state",
  "schnellru",
+ "serde",
  "serde_json",
  "thiserror 2.0.12",
  "tokio",

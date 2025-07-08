@@ -296,6 +296,7 @@ impl MultiProof {
 /// This is a type of [`MultiProof`] that uses decoded proofs, meaning these proofs are stored as a
 /// collection of [`TrieNode`]s instead of RLP-encoded bytes.
 #[derive(Clone, Default, Debug, PartialEq, Eq)]
+#[cfg_attr(any(test, feature = "serde"), derive(serde::Serialize, serde::Deserialize))]
 pub struct DecodedMultiProof {
     /// State trie multiproof for requested accounts.
     pub account_subtree: DecodedProofNodes,
@@ -502,6 +503,7 @@ impl StorageMultiProof {
 
 /// The decoded merkle multiproof for a storage trie.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(any(test, feature = "serde"), derive(serde::Serialize, serde::Deserialize))]
 pub struct DecodedStorageMultiProof {
     /// Storage trie root.
     pub root: B256,
@@ -690,6 +692,7 @@ impl AccountProof {
 
 /// The merkle proof with the relevant account info.
 #[derive(Clone, PartialEq, Eq, Debug)]
+#[cfg_attr(any(test, feature = "serde"), derive(serde::Serialize, serde::Deserialize))]
 pub struct DecodedAccountProof {
     /// The address associated with the account.
     pub address: Address,
@@ -801,6 +804,7 @@ impl From<alloy_rpc_types_eth::EIP1186StorageProof> for StorageProof {
 
 /// The merkle proof of the storage entry, using decoded proofs.
 #[derive(Clone, PartialEq, Eq, Default, Debug)]
+#[cfg_attr(any(test, feature = "serde"), derive(serde::Serialize, serde::Deserialize))]
 pub struct DecodedStorageProof {
     /// The raw storage key.
     pub key: B256,

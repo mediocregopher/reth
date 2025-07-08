@@ -9,6 +9,7 @@ exclude = [".github/"]
 
 [workspace]
 members = [
+    "bin/mpt-diff/",
     "bin/reth-bench/",
     "bin/reth/",
     "crates/storage/rpc-provider/",
@@ -712,7 +713,9 @@ visibility = "0.1.1"
 walkdir = "2.3.3"
 vergen-git2 = "1.0.5"
 
-# [patch.crates-io]
+[patch.crates-io]
+nybbles = { git = "https://github.com/mediocregopher/nybbles.git", branch = "mediocregopher/serde" }
+alloy-trie = { git = "https://github.com/mediocregopher/alloy-rs-trie.git", branch = "mediocregopher/serde" }
 # alloy-consensus = { git = "https://github.com/alloy-rs/alloy", rev = "3049f232fbb44d1909883e154eb38ec5962f53a3" }
 # alloy-contract = { git = "https://github.com/alloy-rs/alloy", rev = "3049f232fbb44d1909883e154eb38ec5962f53a3" }
 # alloy-eips = { git = "https://github.com/alloy-rs/alloy", rev = "3049f232fbb44d1909883e154eb38ec5962f53a3" }
