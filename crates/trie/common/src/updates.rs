@@ -22,9 +22,9 @@ pub struct TrieUpdates {
 impl TrieUpdates {
     /// Returns `true` if the updates are empty.
     pub fn is_empty(&self) -> bool {
-        self.account_nodes.is_empty()
-            && self.removed_nodes.is_empty()
-            && self.storage_tries.is_empty()
+        self.account_nodes.is_empty() &&
+            self.removed_nodes.is_empty() &&
+            self.storage_tries.is_empty()
     }
 
     /// Returns reference to updated account nodes.
@@ -381,6 +381,7 @@ impl TrieUpdatesSorted {
     pub fn disjoint_by_keys(left: Vec<&Self>, right: Vec<&Self>) -> Self {
         let mut account_nodes =
             Vec::with_capacity(left.iter().map(|updates| updates.account_nodes.len()).sum());
+        let mut masked_account_nodes = Vec::new();
         let mut cursors = vec![0; left.len()];
 
         loop {
@@ -414,12 +415,25 @@ impl TrieUpdatesSorted {
             };
 
             if left[winning_index + 1..].iter().any(|updates| updates.removed_nodes.contains(&key))
-                || contains_trie_account_key(&right, &key)
             {
                 continue;
             }
 
-            account_nodes.push((key, winning_node.expect("winning node exists")));
+            let winning_node = winning_node.expect("winning node exists");
+            if contains_trie_account_key(&right, &key) {
+                masked_account_nodes.push((key, winning_node));
+                continue;
+            }
+
+            account_nodes.push((key, winning_node));
+        }
+
+        let restored_account_nodes = masked_account_nodes
+            .into_iter()
+            .filter(|(key, _)| has_unmasked_account_child(&account_nodes, key))
+            .collect::<Vec<_>>();
+        if !restored_account_nodes.is_empty() {
+            account_nodes = merge_sorted_account_nodes(account_nodes, restored_account_nodes);
         }
 
         let mut removed_nodes = HashSet::default();
@@ -491,9 +505,42 @@ impl StorageTrieUpdatesSorted {
 
 fn contains_trie_account_key(states: &[&TrieUpdatesSorted], key: &Nibbles) -> bool {
     states.iter().any(|state| {
-        state.removed_nodes.contains(key)
-            || state.account_nodes.binary_search_by(|(candidate, _)| candidate.cmp(key)).is_ok()
+        state.removed_nodes.contains(key) ||
+            state.account_nodes.binary_search_by(|(candidate, _)| candidate.cmp(key)).is_ok()
     })
+}
+
+fn has_unmasked_account_child(
+    account_nodes: &[(Nibbles, BranchNodeCompact)],
+    key: &Nibbles,
+) -> bool {
+    let next_position = match account_nodes.binary_search_by(|(candidate, _)| candidate.cmp(key)) {
+        Ok(position) => position + 1,
+        Err(position) => position,
+    };
+
+    account_nodes.get(next_position).is_some_and(|(candidate, _)| candidate.has_prefix(key))
+}
+
+fn merge_sorted_account_nodes(
+    left: Vec<(Nibbles, BranchNodeCompact)>,
+    right: Vec<(Nibbles, BranchNodeCompact)>,
+) -> Vec<(Nibbles, BranchNodeCompact)> {
+    let mut merged = Vec::with_capacity(left.len() + right.len());
+    let mut left = left.into_iter().peekable();
+    let mut right = right.into_iter().peekable();
+
+    while let (Some((left_key, _)), Some((right_key, _))) = (left.peek(), right.peek()) {
+        if left_key <= right_key {
+            merged.push(left.next().expect("left peeked item exists"));
+        } else {
+            merged.push(right.next().expect("right peeked item exists"));
+        }
+    }
+
+    merged.extend(left);
+    merged.extend(right);
+    merged
 }
 
 fn merge_storage_trie_updates_sorted(
@@ -881,5 +928,35 @@ mod sorted_tests {
             vec![slot3]
         );
         assert!(!disjoint.storage_tries.contains_key(&addr1));
+    }
+
+    #[test]
+    fn trie_updates_sorted_keeps_masked_parent_with_unmasked_child() {
+        let parent = Nibbles::from_vec(vec![0x0, 0x5]);
+        let left_child = Nibbles::from_vec(vec![0x0, 0x5, 0x4]);
+        let masked_child = Nibbles::from_vec(vec![0x0, 0x5, 0x5]);
+
+        let left = TrieUpdatesSorted {
+            account_nodes: vec![
+                (parent.clone(), BranchNodeCompact::default()),
+                (left_child.clone(), BranchNodeCompact::default()),
+                (masked_child.clone(), BranchNodeCompact::default()),
+            ],
+            ..Default::default()
+        };
+        let right = TrieUpdatesSorted {
+            account_nodes: vec![
+                (parent.clone(), BranchNodeCompact::default()),
+                (masked_child, BranchNodeCompact::default()),
+            ],
+            ..Default::default()
+        };
+
+        let disjoint = TrieUpdatesSorted::disjoint_by_keys(vec![&left], vec![&right]);
+
+        assert_eq!(
+            disjoint.account_nodes.iter().map(|(key, _)| key.clone()).collect::<Vec<_>>(),
+            vec![parent, left_child]
+        );
     }
 }
